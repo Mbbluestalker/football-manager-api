@@ -66,3 +66,13 @@ class LoginView(generics.GenericAPIView):
                 )
 
         return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class LogoutView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        request.user.auth_token.delete()
+        return response.Response(
+            data={"success": "You've been logged out"}, status=status.HTTP_200_OK
+        )
