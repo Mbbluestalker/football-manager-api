@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from .serializers import RegisterSerializer, UserLoginSerializer, EditTeamSerializer
+from .serializers import RegisterSerializer, UserLoginSerializer, EditTeamSerializer, PlayerInfoUpdateSerializer
 from rest_framework import generics, response, status
 from .models import Player, Team, User
 from rest_framework.authentication import TokenAuthentication
@@ -96,3 +96,39 @@ class EditTeamView(generics.RetrieveUpdateAPIView):
                 self.serializer_class(team).data, status=status.HTTP_202_ACCEPTED
             )
         return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class PlayerInfoUpdateView(generics.RetrieveUpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+    serializer_class = PlayerInfoUpdateSerializer
+    queryset = Player.objects.all()
+
+    def patch(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        team = get_object_or_404(Team, user__id=request.user.id)
+        player = get_object_or_404(Player, pk=kwargs["pk"])
+        
+        if team != player.team:
+            return response.Response(
+                data={"message": "You are unauthorized for that action"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if serializer.is_valid():
+            player.first_name = serializer.validated_data["first_name"] or player.first_name
+            player.last_name = serializer.validated_data["last_name"] or player.last_name
+            player.country = serializer.validated_data["country"] or player.country
+        
+            player.save()
+
+            return response.Response(
+                {
+                    "message": "Successfully updated",
+                    "data": self.serializer_class(player).data,
+                },
+                status=status.HTTP_200_OK,
+            )
+        return response.Response(
+            data=serializer.errors, status=status.HTTP_404_NOT_FOUND
+        )

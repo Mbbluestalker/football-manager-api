@@ -99,3 +99,15 @@ class EditTeamSerializer(serializers.ModelSerializer):
             "value": {"read_only": True},
             "team_budget": {"read_only": True},
         }
+
+class PlayerInfoUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Player
+        fields = "__all__"
+        extra_kwargs = {
+            "age": {"read_only": True},
+            "team": {"read_only": True},
+            "position": {"read_only": True},
+            "market_value": {"read_only": True},
+            "transfer_status": {"read_only": True},
+        }
