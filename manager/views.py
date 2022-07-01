@@ -1,10 +1,12 @@
 from django.shortcuts import render
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from .serializers import RegisterSerializer, UserLoginSerializer
+from .serializers import RegisterSerializer, UserLoginSerializer, EditTeamSerializer
 from rest_framework import generics, response, status
 from .models import Player, Team, User
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
+from django.shortcuts import get_object_or_404
+
 
 
 
@@ -76,3 +78,21 @@ class LogoutView(generics.GenericAPIView):
         return response.Response(
             data={"success": "You've been logged out"}, status=status.HTTP_200_OK
         )
+        
+class EditTeamView(generics.RetrieveUpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+    serializer_class = EditTeamSerializer
+    queryset = Team.objects.all()
+
+    def patch(self, request, *args, **kwargs):
+        team = get_object_or_404(Team, user__id=request.user.id)
+        serializer = self.serializer_class(Team, data=request.data, partial=True)
+        if serializer.is_valid():
+            team.name = serializer.validated_data["name"]
+            team.country = serializer.validated_data["country"]
+            team.save()
+            return response.Response(
+                self.serializer_class(team).data, status=status.HTTP_202_ACCEPTED
+            )
+        return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

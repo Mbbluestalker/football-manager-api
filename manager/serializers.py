@@ -88,3 +88,14 @@ class RegisterSerializer(serializers.ModelSerializer):
 class UserLoginSerializer(serializers.Serializer):
     email = serializers.EmailField(max_length=255)
     password = serializers.CharField()
+    
+
+class EditTeamSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Team
+        fields = "__all__"
+        extra_kwargs = {
+            "user": {"read_only": True},
+            "value": {"read_only": True},
+            "team_budget": {"read_only": True},
+        }
