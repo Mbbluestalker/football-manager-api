@@ -83,3 +83,8 @@ class RegisterSerializer(serializers.ModelSerializer):
             generated_player.save()
         new_user.save()
         return new_user
+    
+    
+class UserLoginSerializer(serializers.Serializer):
+    email = serializers.EmailField(max_length=255)
+    password = serializers.CharField()
