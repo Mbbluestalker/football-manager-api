@@ -1,7 +1,13 @@
 from django.urls import path
 
-from .views import RegisterApiView, LoginView, LogoutView, EditTeamView, PlayerInfoUpdateView
-                    
+from .views import (
+    RegisterApiView,
+    LoginView,
+    LogoutView,
+    EditTeamView,
+    PlayerInfoUpdateView,
+    SetPlayerOnTransferView,
+)
 
 
 urlpatterns = [
@@ -14,5 +20,9 @@ urlpatterns = [
         PlayerInfoUpdateView.as_view(),
         name="edit-player",
     ),
-
+    path(
+        "add-to-market/player/<int:pk>/",
+        SetPlayerOnTransferView.as_view(),
+        name="add-to-market",
+    ),
 ]

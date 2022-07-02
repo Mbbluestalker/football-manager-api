@@ -83,12 +83,12 @@ class RegisterSerializer(serializers.ModelSerializer):
             generated_player.save()
         new_user.save()
         return new_user
-    
-    
+
+
 class UserLoginSerializer(serializers.Serializer):
     email = serializers.EmailField(max_length=255)
     password = serializers.CharField()
-    
+
 
 class EditTeamSerializer(serializers.ModelSerializer):
     class Meta:
@@ -100,6 +100,7 @@ class EditTeamSerializer(serializers.ModelSerializer):
             "team_budget": {"read_only": True},
         }
 
+
 class PlayerInfoUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Player
@@ -110,4 +111,19 @@ class PlayerInfoUpdateSerializer(serializers.ModelSerializer):
             "position": {"read_only": True},
             "market_value": {"read_only": True},
             "transfer_status": {"read_only": True},
+        }
+
+
+class SetPlayerOnTransferSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Player
+        fields = "__all__"
+        extra_kwargs = {
+            "first_name": {"read_only": True},
+            "last_name": {"read_only": True},
+            "age": {"read_only": True},
+            "team": {"read_only": True},
+            "country": {"read_only": True},
+            "position": {"read_only": True},
+            "shirt_number": {"read_only": True},
         }

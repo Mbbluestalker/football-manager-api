@@ -12,6 +12,7 @@ from .user_manager import CustomUserManager
 
 TransferStatus = [("UA", "Unavaliable"), ("A", "Avaliable")]
 
+
 class User(AbstractUser):
     username = models.CharField(max_length=255, null=True)
     team_name = models.CharField(max_length=100, unique=True)
@@ -56,16 +57,12 @@ class Player(models.Model):
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     age = models.IntegerField(default=26)
-    market_value = models.FloatField(
-        default=0, validators=[MinValueValidator(0)]
-    )
+    market_value = models.FloatField(default=0, validators=[MinValueValidator(0)])
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     position = models.CharField(blank=True, choices=PLAYER_POSITIONS, max_length=20)
     shirt_number = models.IntegerField(default=1, validators=[MinValueValidator(1)])
     country = models.CharField(max_length=255)
-    player_value = models.FloatField(
-        default=1000000, validators=[MinValueValidator(1)]
-    )
+    player_value = models.FloatField(default=1000000, validators=[MinValueValidator(1)])
     transfer_status = models.CharField(
         default="UA", max_length=20, choices=TransferStatus
     )

@@ -1,16 +1,20 @@
-from django.shortcuts import render
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from .serializers import RegisterSerializer, UserLoginSerializer, EditTeamSerializer, PlayerInfoUpdateSerializer
+from django.shortcuts import get_object_or_404, render
 from rest_framework import generics, response, status
-from .models import Player, Team, User
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
-from django.shortcuts import get_object_or_404
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
-
-
+from .models import Player, Team, User
+from .serializers import (
+    EditTeamSerializer,
+    PlayerInfoUpdateSerializer,
+    RegisterSerializer,
+    SetPlayerOnTransferSerializer,
+    UserLoginSerializer,
+)
 
 # Create your views here.
+
 
 class RegisterApiView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
@@ -34,7 +38,7 @@ class RegisterApiView(generics.CreateAPIView):
             return response.Response(
                 {"message!": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
             )
-            
+
 
 class LoginView(generics.GenericAPIView):
     permission_classes = [AllowAny]
@@ -68,7 +72,7 @@ class LoginView(generics.GenericAPIView):
                 )
 
         return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
 
 class LogoutView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
@@ -78,7 +82,8 @@ class LogoutView(generics.GenericAPIView):
         return response.Response(
             data={"success": "You've been logged out"}, status=status.HTTP_200_OK
         )
-        
+
+
 class EditTeamView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
@@ -96,7 +101,7 @@ class EditTeamView(generics.RetrieveUpdateAPIView):
                 self.serializer_class(team).data, status=status.HTTP_202_ACCEPTED
             )
         return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
 
 class PlayerInfoUpdateView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
@@ -108,7 +113,7 @@ class PlayerInfoUpdateView(generics.RetrieveUpdateAPIView):
         serializer = self.serializer_class(data=request.data)
         team = get_object_or_404(Team, user__id=request.user.id)
         player = get_object_or_404(Player, pk=kwargs["pk"])
-        
+
         if team != player.team:
             return response.Response(
                 data={"message": "You are unauthorized for that action"},
@@ -116,15 +121,65 @@ class PlayerInfoUpdateView(generics.RetrieveUpdateAPIView):
             )
 
         if serializer.is_valid():
-            player.first_name = serializer.validated_data["first_name"] or player.first_name
-            player.last_name = serializer.validated_data["last_name"] or player.last_name
+            player.first_name = (
+                serializer.validated_data["first_name"] or player.first_name
+            )
+            player.last_name = (
+                serializer.validated_data["last_name"] or player.last_name
+            )
             player.country = serializer.validated_data["country"] or player.country
-        
+
             player.save()
 
             return response.Response(
                 {
                     "message": "Successfully updated",
+                    "data": self.serializer_class(player).data,
+                },
+                status=status.HTTP_200_OK,
+            )
+        return response.Response(
+            data=serializer.errors, status=status.HTTP_404_NOT_FOUND
+        )
+
+
+class SetPlayerOnTransferView(generics.RetrieveUpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+    serializer_class = SetPlayerOnTransferSerializer
+    queryset = Player.objects.all()
+
+    def patch(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        team = get_object_or_404(Team, user__id=request.user.id)
+        player = get_object_or_404(Player, pk=kwargs["pk"])
+
+        # if team.user != request.user:
+        if team != player.team:
+            return response.Response(
+                data={"message": "You are unauthorized for that action"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if serializer.is_valid():
+            transfer_status = serializer.validated_data["transfer_status"]
+
+            if transfer_status != "A":
+                return response.Response(
+                    data={
+                        "message": "You can not set market value without adding player to transfer list"
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            player.market_value = serializer.validated_data["market_value"]
+            player.transfer_status = serializer.validated_data["transfer_status"]
+
+            player.save()
+
+            return response.Response(
+                {
+                    "message": "Successfully Added to transfer",
                     "data": self.serializer_class(player).data,
                 },
                 status=status.HTTP_200_OK,
