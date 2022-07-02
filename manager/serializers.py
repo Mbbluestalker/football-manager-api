@@ -160,3 +160,8 @@ class TransferPlayerSerializer(serializers.ModelSerializer):
             "position": {"read_only": True},
             "shirt_number": {"read_only": True},
         }
+        
+class TeamsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Team
+        fields = "__all__"

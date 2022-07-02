@@ -14,7 +14,8 @@ from .serializers import (
     SetPlayerOnTransferSerializer,
     UserLoginSerializer,
     TransferMarketSerializer,
-    TransferPlayerSerializer
+    TransferPlayerSerializer,
+    TeamsSerializer,
 )
 
 # Create your views here.
@@ -248,10 +249,33 @@ class TransferPlayer(generics.RetrieveUpdateAPIView):
             )
 
     
-# class PlayersListView(generics.ListAPIView):
-#     permission_classes = [IsAuthenticated]
-#     authentication_classes = [TokenAuthentication]
-#     serializer_class = TransferPlayerSerializer
+class TeamListView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+    serializer_class = TeamsSerializer
+    queryset = Team.objects.all()
 
-#     def get_queryset(self):
-#         return Player.objects.filter(team__id=self.kwargs["pk"])
+
+class TeamView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+    serializer_class = TeamsSerializer
+
+    def get_queryset(self):
+        return Team.objects.all()
+
+
+class PlayersListView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+    serializer_class = TransferPlayerSerializer
+
+    def get_queryset(self):
+        return Player.objects.filter(team__id=self.kwargs["pk"])
+
+
+class PlayerView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+    serializer_class = TransferMarketSerializer
+    queryset = Player.objects.all()

@@ -8,8 +8,11 @@ from .views import (
     PlayerInfoUpdateView,
     SetPlayerOnTransferView,
     TransferMarketList,
-    # PlayersListView
-    TransferPlayer
+    PlayersListView,
+    TeamListView,
+    TransferPlayer,
+    PlayerView,
+    TeamView,
 )
 
 
@@ -34,5 +37,8 @@ urlpatterns = [
         TransferPlayer.as_view(),
         name="transfer-player",
     ),
-    # path("players/<int:pk>/", PlayersListView.as_view(), name="all-players"),
+    path("players/<int:pk>/", PlayersListView.as_view(), name="all-players"),
+    path("teams/", TeamListView.as_view(), name="all-teams"),
+    path("player/<int:pk>/", PlayerView.as_view(), name="player"),
+    path("team/<int:pk>/", TeamView.as_view(), name="team"),
 ]
