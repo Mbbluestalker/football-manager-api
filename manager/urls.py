@@ -7,6 +7,7 @@ from .views import (
     EditTeamView,
     PlayerInfoUpdateView,
     SetPlayerOnTransferView,
+    TransferMarketList
 )
 
 
@@ -25,4 +26,5 @@ urlpatterns = [
         SetPlayerOnTransferView.as_view(),
         name="add-to-market",
     ),
+    path("transfer-market/", TransferMarketList.as_view(), name="transfer_market"),
 ]

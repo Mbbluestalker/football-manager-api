@@ -127,3 +127,19 @@ class SetPlayerOnTransferSerializer(serializers.ModelSerializer):
             "position": {"read_only": True},
             "shirt_number": {"read_only": True},
         }
+
+class TransferMarketSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Player
+        fields = "__all__"
+        extra_kwargs = {
+            "first_name": {"read_only": True},
+            "last_name": {"read_only": True},
+            "age": {"read_only": True},
+            "team": {"read_only": True},
+            "country": {"read_only": True},
+            "transfer_status": {"read_only": True},
+            "position": {"read_only": True},
+            "shirt_number": {"read_only": True},
+            "market_value": {"read_only": True},
+        }

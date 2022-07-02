@@ -11,6 +11,7 @@ from .serializers import (
     RegisterSerializer,
     SetPlayerOnTransferSerializer,
     UserLoginSerializer,
+    TransferMarketSerializer
 )
 
 # Create your views here.
@@ -187,3 +188,12 @@ class SetPlayerOnTransferView(generics.RetrieveUpdateAPIView):
         return response.Response(
             data=serializer.errors, status=status.HTTP_404_NOT_FOUND
         )
+
+
+class TransferMarketList(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+    serializer_class = TransferMarketSerializer
+
+    def get_queryset(self):
+        return Player.objects.filter(transfer_status="A")
