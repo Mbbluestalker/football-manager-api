@@ -3,6 +3,8 @@ from rest_framework import generics, response, status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from .lib.utils import Util
+
 
 from .models import Player, Team, User
 from .serializers import (
@@ -11,7 +13,8 @@ from .serializers import (
     RegisterSerializer,
     SetPlayerOnTransferSerializer,
     UserLoginSerializer,
-    TransferMarketSerializer
+    TransferMarketSerializer,
+    TransferPlayerSerializer
 )
 
 # Create your views here.
@@ -197,3 +200,58 @@ class TransferMarketList(generics.ListAPIView):
 
     def get_queryset(self):
         return Player.objects.filter(transfer_status="A")
+    
+class TransferPlayer(generics.RetrieveUpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+    serializer_class = TransferPlayerSerializer
+
+    def get_queryset(self):
+        return Player.objects.filter(transfer_status="A")
+
+    def get(self, request, *args, **kwargs):
+        try:
+
+            team = Team.objects.all()
+            current_team = team.get(user=request.user)
+
+            new_team = team.get(id=kwargs["team_id"])
+            player = self.get_queryset().get(pk=kwargs["player_id"])
+            if (new_team.team_budget >= player.market_value) and (
+                new_team.id != current_team.id
+            ):
+                # remove player from current team and recalculate budget and team value
+                current_team.team_budget += player.market_value 
+                current_team.value -= player.player_value
+                print(current_team.value)
+
+                # transfer player to new team and recalculate budget, team value and player value
+                new_team.team_budget -= player.market_value
+                player.team = new_team
+                player.player_value = Util.player_value(player.player_value)
+                new_team.value += player.player_value
+                player.transfer_status = "UA"
+                player.market_value = 0.0
+                player.save()
+                new_team.save()
+                current_team.save()
+                return response.Response(
+                    self.serializer_class(player).data, status=status.HTTP_200_OK
+                )
+
+            else:
+                raise Exception("You cant buy your own player or budget not enough")
+
+        except Exception as error:
+            return response.Response(
+                {"error": f"{error}"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+    
+# class PlayersListView(generics.ListAPIView):
+#     permission_classes = [IsAuthenticated]
+#     authentication_classes = [TokenAuthentication]
+#     serializer_class = TransferPlayerSerializer
+
+#     def get_queryset(self):
+#         return Player.objects.filter(team__id=self.kwargs["pk"])
